@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "libs/stb_image.h"
+#include "../libs/stb_image.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "libs/stb_image_write.h"
+#include "../libs/stb_image_write.h"
 
 typedef struct {
     unsigned char r, g, b;
@@ -414,7 +414,8 @@ int br_read_bit(BitReader *br, int *out_bit) {
    - freq table (256 * uint32, little endian)
    - then bitstream bytes (packed)
 */
-void huffman_encode_and_write(const char *out_path, const char *chunk_path,
+/* NOTE: removed unused chunk_path parameter; chunk stream is passed directly */
+void huffman_encode_and_write(const char *out_path,
                               int width, int height, int channels,
                               const ByteBuf *chunk_stream) {
     // compute freq
@@ -620,11 +621,15 @@ Pixel* decode_chunks_from_buffer(const unsigned char *buf, size_t buf_size, int 
 }
 
 /* ------------------ Main flow ------------------ */
-int main(void) {
-    const char *inpath = "static/venice.bmp";
-    const char *out_chunk = "static/compressed.pp";   // intermediate chunk stream (optional)
-    const char *out_huff = "static/final.huff";       // final file with Huffman
-    const char *out_decoded_bmp = "static/decoded.bmp";
+int main(int argc, char **argv) {
+    if (argc < 4) {
+        fprintf(stderr, "Usage: %s <input.bmp> <output.pp> <decoded.bmp>\n", argv[0]);
+        return 1;
+    }
+
+    const char *inpath = argv[1];
+    const char *out_compressed = argv[2];
+    const char *out_decoded_bmp = argv[3];
 
     int width, height, channels;
     unsigned char *img = stbi_load(inpath, &width, &height, &channels, 0);
@@ -645,39 +650,26 @@ int main(void) {
     stbi_image_free(img);
     if (!pixels) { fprintf(stderr, "OOM\n"); return 1; }
 
-    // Build chunk stream into memory
+    // Build chunk stream
     ByteBuf chunk_stream;
     build_chunk_stream(pixels, total_pixels, &chunk_stream);
     printf("Built chunk stream bytes = %zu\n", chunk_stream.size);
 
-    // Optionally write intermediate chunk stream for inspection/debugging
-    FILE *tmpf = fopen(out_chunk, "wb");
-    if (tmpf) {
-        fwrite(chunk_stream.buf, 1, chunk_stream.size, tmpf);
-        fclose(tmpf);
-    }
+    // Compress using Huffman and write to final output (.pp)
+    huffman_encode_and_write(out_compressed, width, height, channels, &chunk_stream);
+    printf("Compression complete. Output saved to %s\n", out_compressed);
 
-    // Huffman encode and write final file
-    huffman_encode_and_write(out_huff, out_chunk, width, height, channels, &chunk_stream);
-    // (we pass out_chunk path but function doesn't read that file; it uses chunk_stream directly —
-    //  kept parameter to align with earlier design; currently it uses chunk_stream)
-
-    // For clarity: call huffman function that uses chunk_stream directly (modify above function signature?)
-    // but we wrote huffman_encode_and_write to accept chunk_stream param — it's already using chunk_stream.
-
-    // Now decode: read file, decode Huffman -> get chunk bytes buffer
+    // Decompression
     uint32_t uncompressed_size = 0;
     int rwidth=0, rheight=0, rchannels=0;
-    unsigned char *decoded_chunk_buf = huffman_read_and_decode(out_huff, &uncompressed_size, &rwidth, &rheight, &rchannels);
+    unsigned char *decoded_chunk_buf = huffman_read_and_decode(out_compressed, &uncompressed_size, &rwidth, &rheight, &rchannels);
     if (!decoded_chunk_buf) {
         fprintf(stderr, "Huffman decode failed\n");
         bb_free(&chunk_stream);
         free(pixels);
         return 1;
     }
-    printf("Huffman decoded uncompressed chunk size = %u\n", uncompressed_size);
 
-    // Pass the decoded chunk buffer to chunk decoder
     Pixel *decoded_pixels = decode_chunks_from_buffer(decoded_chunk_buf, uncompressed_size, total_pixels);
     if (!decoded_pixels) {
         fprintf(stderr, "Chunk decode failed\n");
@@ -689,7 +681,6 @@ int main(void) {
 
     // Write decoded BMP
     unsigned char *outbuf = malloc((size_t)total_pixels * 3);
-    if (!outbuf) { fprintf(stderr, "OOM\n"); free(decoded_pixels); free(decoded_chunk_buf); bb_free(&chunk_stream); free(pixels); return 1; }
     for (int i = 0; i < total_pixels; ++i) {
         outbuf[i*3+0] = decoded_pixels[i].r;
         outbuf[i*3+1] = decoded_pixels[i].g;
@@ -704,6 +695,6 @@ int main(void) {
     free(decoded_chunk_buf);
     bb_free(&chunk_stream);
     free(pixels);
+
     return 0;
 }
-
