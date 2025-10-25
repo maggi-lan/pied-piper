@@ -4,6 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "libs/stb_image_write.h"
+
 // Define a simple Pixel struct
 typedef struct {
     unsigned char r, g, b;
@@ -28,8 +31,8 @@ Pixel* convert_pixels(unsigned char* data, int width, int height, int channels) 
 
 // Helper to clamp a difference to signed char
 int clamp_diff(int diff) {
-    if (diff < -128) return -128;
-    if (diff > 127) return 127;
+    if (diff < 0) return 0;
+    if (diff > 255) return 255;
     return diff;
 }
 
@@ -103,6 +106,67 @@ void compress_chunks(Pixel* pixels, int total_pixels, const char* out_file) {
     printf("Compression complete. Output saved to %s\n", out_file);
 }
 
+// Decode compressed file into pixel array
+Pixel* decode_chunks(const char* in_file, int total_pixels) {
+    FILE* in = fopen(in_file, "rb");
+    if (!in) {
+        printf("Failed to open input file for decoding!\n");
+        return NULL;
+    }
+
+    Pixel* pixels = malloc(total_pixels * sizeof(Pixel));
+    if (!pixels) {
+        printf("Failed to allocate memory for decoding!\n");
+        fclose(in);
+        return NULL;
+    }
+
+    Pixel prev = {0, 0, 0};
+    int count = 0;
+
+    while (!feof(in) && count < total_pixels) {
+        int code = fgetc(in);
+        if (code == EOF) break;
+
+        if (code == 0x00) { // RLE
+            int run = fgetc(in);
+            Pixel px;
+            px.r = fgetc(in);
+            px.g = fgetc(in);
+            px.b = fgetc(in);
+
+            for (int i = 0; i < run && count < total_pixels; i++) {
+                pixels[count++] = px;
+            }
+            prev = px;
+        } else if (code == 0x01) { // RAW
+            Pixel px;
+            px.r = fgetc(in);
+            px.g = fgetc(in);
+            px.b = fgetc(in);
+            pixels[count++] = px;
+            prev = px;
+        } else if (code == 0x02) { // DIFF
+            int dr = (signed char)fgetc(in);
+            int dg = (signed char)fgetc(in);
+            int db = (signed char)fgetc(in);
+            Pixel px;
+            px.r = clamp_diff(prev.r + dr);
+            px.g = clamp_diff(prev.g + dg);
+            px.b = clamp_diff(prev.b + db);
+            pixels[count++] = px;
+            prev = px;
+        } else {
+            printf("Unknown chunk code: 0x%02X\n", code);
+            break;
+        }
+    }
+
+    fclose(in);
+    printf("Decoded %d pixels.\n", count);
+    return pixels;
+}
+
 int main() {
     char *filename = "static/snail.bmp";
 
@@ -124,9 +188,30 @@ int main() {
 
     stbi_image_free(pixels_data);
 
-    compress_chunks(pixels, width * height, "compressed.pp");
+    const char* compressed_file = "static/compressed.pp";
+    compress_chunks(pixels, width * height, compressed_file);
+
+    // Decode back
+    Pixel* decoded = decode_chunks(compressed_file, width * height);
+    if (!decoded) {
+        free(pixels);
+        return 1;
+    }
+
+    // Write decoded image for verification
+    unsigned char* decoded_bytes = malloc(width * height * 3);
+    for (int i = 0; i < width * height; i++) {
+        decoded_bytes[i * 3 + 0] = decoded[i].r;
+        decoded_bytes[i * 3 + 1] = decoded[i].g;
+        decoded_bytes[i * 3 + 2] = decoded[i].b;
+    }
+
+    stbi_write_bmp("static/decoded.bmp", width, height, 3, decoded_bytes);
+
+    printf("Decoded image saved as decoded.bmp\n");
 
     free(pixels);
+    free(decoded);
+    free(decoded_bytes);
     return 0;
 }
-
