@@ -8,141 +8,7 @@
   position: relative;
 }
 
-/* ========== SIDEBAR MENU (RIGHT SIDE) ========== */
-.sidebar {
-  position: fixed;
-  top: 0;
-  right: -320px;
-  width: 320px;
-  height: 100vh;
-  background: rgba(12,123,72);
-  transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1000;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar--open {
-  right: 0;
-}
-
-.sidebar__content {
-  padding: 2rem;
-  color: white;
-}
-
-.sidebar__title {
-  font-size: 2rem;
-  margin-bottom: 2rem;
-  font-weight: 600;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 1rem;
-}
-
-.sidebar__placeholder {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-}
-
-/* ========== SIDEBAR NAVIGATION ========== */
-.sidebar__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.sidebar__menu-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: transparent;  /* Changed to transparent */
-  border: 1px solid transparent;  /* Hidden border by default */
-  border-radius: 10px;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 500;
-  font-family: Georgia, 'Times New Roman', Times, serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: left;
-}
-
-.sidebar__menu-item:hover {
-  background: rgba(255, 255, 255, 0.1);  /* Slight background on hover */
-  border-color: rgba(255, 255, 255, 0.3);  /* Border appears on hover */
-  transform: translateX(5px);
-}
-
-.sidebar__menu-item:active {
-  transform: translateX(5px) scale(0.98);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.sidebar__menu-icon {
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ========== HAMBURGER MENU BUTTON (FIXED TOP RIGHT) ========== */
-.menu-toggle {
-  position: fixed;
-  top: 2rem;
-  right: 1.5rem;
-  width: 50px;
-  height: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  cursor: pointer;
-  z-index: 1002;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 0;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.menu-toggle:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  transform: scale(1.05);
-}
-
-.menu-toggle__line {
-  width: 25px;
-  height: 3px;
-  background: white;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-}
-
-.menu-toggle--active .menu-toggle__line:nth-child(1) {
-  transform: rotate(45deg) translate(7px, 7px);
-}
-
-.menu-toggle--active .menu-toggle__line:nth-child(2) {
-  opacity: 0;
-}
-
-.menu-toggle--active .menu-toggle__line:nth-child(3) {
-  transform: rotate(-45deg) translate(7px, -7px);
-}
-
-/* ========== CONTENT WRAPPER ========== */
-.content-wrapper {
-  width: 100%;
-  height: 100vh;
-  position: relative;
-}
-
-/* ========== HEADER (STAYS FIXED) ========== */
+/* ========== HEADER ========== */
 .header {
   padding: 2.5rem 2rem;
   position: relative;
@@ -188,14 +54,6 @@
   align-items: flex-start;
   gap: 2.5rem;
   margin-top: -3rem;
-  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Hide left content when menu is open */
-.content-wrapper--shifted .content-left {
-  opacity: 0;
-  transform: translateX(-150%);
-  pointer-events: none;
 }
 
 .main-title {
@@ -226,6 +84,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .compress-btn:hover {
@@ -245,6 +104,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .how-it-works-btn:hover {
@@ -253,7 +113,7 @@
   transform: translateY(-2px);
 }
 
-/* ========== RIGHT CONTENT (SMOOTH TRANSITION - NO GLITCH) ========== */
+/* ========== RIGHT CONTENT ========== */
 .content-right {
   flex: 1;
   display: flex;
@@ -261,15 +121,6 @@
   align-items: center;
   height: 100%;
   position: relative;
-}
-
-/* When menu opens - center the container */
-.content-wrapper--shifted .content-right {
-  position: absolute;
-  left: 0;
-  right: 320px;
-  justify-content: center;
-  flex: none;
 }
 
 .main-logo {
@@ -281,66 +132,19 @@
   top: 50%;
   right: -5rem;
   transform: translateY(-50%);
-  transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Menu open: center using left positioning and transform */
-.content-wrapper--shifted .main-logo {
-  left: 50%;
-  right: auto;
-  transform: translate(-50%, -50%);
-}
-
-/* ========== RESPONSIVE DESIGN ========== */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
-  .sidebar {
-    width: 280px;
-    right: -280px;
-  }
-
-  .content-wrapper--shifted .content-right {
-    right: 280px;
-  }
-
-  .header {
-    padding: 2rem 1.5rem;
-  }
-
-  .logo-icon {
-    width: 60px;
-    height: 60px;
-  }
-
-  .team-name {
-    font-size: 2.2rem;
-  }
-
   .main-content {
     padding: 0 3rem;
     gap: 3rem;
-    margin-top: -1rem;
   }
-
-  .content-left {
-    margin-top: -2rem;
-  }
-
+  
   .main-title {
     font-size: 4rem;
   }
-
-  .compress-btn {
-    font-size: 1.3rem;
-    padding: 1.1rem 3rem;
-  }
-
-  .how-it-works-btn {
-    font-size: 1.1rem;
-    padding: 0.9rem 2.5rem;
-  }
-
+  
   .main-logo {
     max-width: 400px;
     right: 1rem;
@@ -348,65 +152,18 @@
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    width: 260px;
-    right: -260px;
-  }
-
-  .content-wrapper--shifted .content-right {
-    right: 260px;
-  }
-
-  .menu-toggle {
-    right: 1rem;
-  }
-
-  .header {
-    padding: 1.5rem 1rem;
-  }
-
-  .logo-icon {
-    width: 50px;
-    height: 50px;
-  }
-
-  .team-name {
-    font-size: 1.8rem;
-  }
-
   .main-content {
     flex-direction: column;
     padding: 0 2rem;
-    text-align: center;
-    height: calc(100vh - 100px);
-    margin-top: 0;
   }
-
-  .content-left {
-    align-items: center;
-    margin-top: 0;
-  }
-
+  
   .main-title {
     font-size: 2.8rem;
-    text-align: center;
   }
-
-  .compress-btn {
-    font-size: 1.1rem;
-    padding: 0.9rem 2.5rem;
-  }
-
-  .how-it-works-btn {
-    font-size: 1rem;
-    padding: 0.8rem 2rem;
-  }
-
+  
   .main-logo {
-    position: static !important;
-    transform: none !important;
+    position: static;
+    transform: none;
     max-width: 300px;
-    left: auto !important;
-    right: auto !important;
   }
 }
