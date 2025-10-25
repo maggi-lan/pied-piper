@@ -1,0 +1,80 @@
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Compiled dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Build directories
+/build/
+/bin/
+/lib/
+/dist/
+/Debug/
+/Release/
+
+# IDE files (VSCode, CLion, etc.)
+.vscode/
+.idea/
+*.code-workspace
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CMakeScripts/
+CTestTestfile.cmake
+install_manifest.txt
+compile_commands.json
+
+# Visual Studio
+*.vcxproj*
+*.sln
+*.ncb
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# Temporary / log files
+*.log
+*.tmp
+*.temp
+
+# Vim / swap files
+*.swp
+*.swo
+
+# MacOS
+.DS_Store
+
+# Linux / other system files
+*~
+
