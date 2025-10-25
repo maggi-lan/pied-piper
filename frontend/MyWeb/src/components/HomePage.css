@@ -1,44 +1,184 @@
 .home-container {
   min-height: 100vh;
   height: 100vh;
-  background: rgba(2, 133, 39);
+  background: rgba(12,123,72);
   color: white;
   font-family: Georgia, 'Times New Roman', Times, serif;
   overflow: hidden;
+  position: relative;
 }
 
+/* ========== SIDEBAR MENU (RIGHT SIDE) ========== */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -320px;
+  width: 320px;
+  height: 100vh;
+  background: rgba(12,123,72);
+  transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1000;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar--open {
+  right: 0;
+}
+
+.sidebar__content {
+  padding: 2rem;
+  color: white;
+}
+
+.sidebar__title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 1rem;
+}
+
+.sidebar__placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+}
+
+/* ========== SIDEBAR NAVIGATION ========== */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.sidebar__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: transparent;  /* Changed to transparent */
+  border: 1px solid transparent;  /* Hidden border by default */
+  border-radius: 10px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.sidebar__menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);  /* Slight background on hover */
+  border-color: rgba(255, 255, 255, 0.3);  /* Border appears on hover */
+  transform: translateX(5px);
+}
+
+.sidebar__menu-item:active {
+  transform: translateX(5px) scale(0.98);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar__menu-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== HAMBURGER MENU BUTTON (FIXED TOP RIGHT) ========== */
+.menu-toggle {
+  position: fixed;
+  top: 2rem;
+  right: 1.5rem;
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  cursor: pointer;
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+.menu-toggle__line {
+  width: 25px;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.menu-toggle--active .menu-toggle__line:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.menu-toggle--active .menu-toggle__line:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle--active .menu-toggle__line:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
+/* ========== CONTENT WRAPPER ========== */
+.content-wrapper {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+
+/* ========== HEADER (STAYS FIXED) ========== */
 .header {
-  padding: 2rem 1.5rem;
+  padding: 2.5rem 2rem;
+  position: relative;
+  z-index: 900;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
 .logo-icon {
-  width: 50px;
-  height: 50px;
+  width: 70px;
+  height: 70px;
   object-fit: contain;
 }
 
 .team-name {
-  font-size: 2rem;
+  font-size: 2.8rem;
   font-weight: 600;
   margin: 0;
   letter-spacing: 0.5px;
 }
 
+/* ========== MAIN CONTENT ========== */
 .main-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 6rem;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: -2rem auto 0;
-  gap: 4rem;
-  height: calc(100vh - 100px);
+  gap: 5rem;
+  height: calc(100vh - 150px);
+  position: relative;
 }
 
 .content-left {
@@ -46,24 +186,31 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2rem;
+  gap: 2.5rem;
   margin-top: -3rem;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hide left content when menu is open */
+.content-wrapper--shifted .content-left {
+  opacity: 0;
+  transform: translateX(-150%);
+  pointer-events: none;
 }
 
 .main-title {
-  font-size: 4.5rem;
-  font-weight: 400;
+  font-size: 5.5rem;
+  font-weight: bold;
   line-height: 1.2;
   margin: 0;
   letter-spacing: -1px;
   text-align: center;
-  font-weight: bold;
 }
 
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
   width: 100%;
 }
@@ -72,9 +219,9 @@
   background-color: rgba(255, 255, 255, 0.95);
   color: rgba(2, 133, 39);
   border: none;
-  padding: 1rem 3rem;
+  padding: 1.3rem 3.5rem;
   border-radius: 50px;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -91,9 +238,9 @@
   background-color: rgba(255, 255, 255, 0.15);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  padding: 0.875rem 2.5rem;
+  padding: 1.1rem 3rem;
   border-radius: 50px;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -106,29 +253,70 @@
   transform: translateY(-2px);
 }
 
+/* ========== RIGHT CONTENT (SMOOTH TRANSITION - NO GLITCH) ========== */
 .content-right {
   flex: 1;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  padding-right: 2rem;
-  height: 100%;  /* Take full height of parent */
+  height: 100%;
   position: relative;
 }
 
+/* When menu opens - center the container */
+.content-wrapper--shifted .content-right {
+  position: absolute;
+  left: 0;
+  right: 320px;
+  justify-content: center;
+  flex: none;
+}
+
 .main-logo {
-  max-width: 400px;
+  max-width: 550px;
   width: 100%;
   height: auto;
   object-fit: contain;
-  position: absolute;  /* Position absolutely for perfect centering */
-  top: 45%;  /* Move to 50% from top */
-  transform: translateY(-50%);  /* Shift back by half its height */
-  right: -5rem;  /* Keep it on the right */
+  position: absolute;
+  top: 50%;
+  right: -5rem;
+  transform: translateY(-50%);
+  transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              left 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Responsive Design */
+/* Menu open: center using left positioning and transform */
+.content-wrapper--shifted .main-logo {
+  left: 50%;
+  right: auto;
+  transform: translate(-50%, -50%);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 1024px) {
+  .sidebar {
+    width: 280px;
+    right: -280px;
+  }
+
+  .content-wrapper--shifted .content-right {
+    right: 280px;
+  }
+
+  .header {
+    padding: 2rem 1.5rem;
+  }
+
+  .logo-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .team-name {
+    font-size: 2.2rem;
+  }
+
   .main-content {
     padding: 0 3rem;
     gap: 3rem;
@@ -140,22 +328,50 @@
   }
 
   .main-title {
-    font-size: 3.5rem;
+    font-size: 4rem;
+  }
+
+  .compress-btn {
+    font-size: 1.3rem;
+    padding: 1.1rem 3rem;
+  }
+
+  .how-it-works-btn {
+    font-size: 1.1rem;
+    padding: 0.9rem 2.5rem;
   }
 
   .main-logo {
-    max-width: 300px;
+    max-width: 400px;
     right: 1rem;
-  }
-
-  .content-right {
-    padding-right: 1rem;
   }
 }
 
 @media (max-width: 768px) {
+  .sidebar {
+    width: 260px;
+    right: -260px;
+  }
+
+  .content-wrapper--shifted .content-right {
+    right: 260px;
+  }
+
+  .menu-toggle {
+    right: 1rem;
+  }
+
   .header {
     padding: 1.5rem 1rem;
+  }
+
+  .logo-icon {
+    width: 50px;
+    height: 50px;
+  }
+
+  .team-name {
+    font-size: 1.8rem;
   }
 
   .main-content {
@@ -172,18 +388,25 @@
   }
 
   .main-title {
-    font-size: 2.5rem;
+    font-size: 2.8rem;
     text-align: center;
   }
 
-  .main-logo {
-    position: static;
-    transform: none;
-    max-width: 250px;
-    right: auto;
+  .compress-btn {
+    font-size: 1.1rem;
+    padding: 0.9rem 2.5rem;
   }
 
-  .content-right {
-    padding-right: 0;
+  .how-it-works-btn {
+    font-size: 1rem;
+    padding: 0.8rem 2rem;
+  }
+
+  .main-logo {
+    position: static !important;
+    transform: none !important;
+    max-width: 300px;
+    left: auto !important;
+    right: auto !important;
   }
 }
