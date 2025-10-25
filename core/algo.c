@@ -26,7 +26,14 @@ Pixel* convert_pixels(unsigned char* data, int width, int height, int channels) 
     return pixels;
 }
 
-// Compress pixels using chunk-based RLE + RAW pixels
+// Helper to clamp a difference to signed char
+int clamp_diff(int diff) {
+    if (diff < -128) return -128;
+    if (diff > 127) return 127;
+    return diff;
+}
+
+// Compress pixels using chunk-based RLE + RAW + DIFF pixels
 void compress_chunks(Pixel* pixels, int total_pixels, const char* out_file) {
     FILE* out = fopen(out_file, "wb");
     if (!out) {
@@ -38,32 +45,47 @@ void compress_chunks(Pixel* pixels, int total_pixels, const char* out_file) {
     int run = 1;
 
     for (int i = 1; i < total_pixels; i++) {
-        if (pixels[i].r == prev.r &&
-            pixels[i].g == prev.g &&
-            pixels[i].b == prev.b &&
-            run < 255) { // max run length for 1 byte
+        Pixel curr = pixels[i];
+
+        // Check for RLE continuation
+        if (curr.r == prev.r && curr.g == prev.g && curr.b == prev.b && run < 255) {
             run++;
+            continue;
+        }
+
+        // If run ended, flush RLE or single pixel
+        if (run > 1) {
+            fputc(0x00, out); // code for RLE
+            fputc(run, out);
+            fputc(prev.r, out);
+            fputc(prev.g, out);
+            fputc(prev.b, out);
+            run = 1;
         } else {
-            if (run > 1) {
-                // RLE chunk
-                fputc(0x00, out);      // code for RLE
-                fputc(run, out);       // run length
-                fputc(prev.r, out);
-                fputc(prev.g, out);
-                fputc(prev.b, out);
+            // Check if the current pixel is close enough for DIFF
+            int dr = (int)curr.r - (int)prev.r;
+            int dg = (int)curr.g - (int)prev.g;
+            int db = (int)curr.b - (int)prev.b;
+
+            if (dr >= -2 && dr <= 2 && dg >= -2 && dg <= 2 && db >= -2 && db <= 2) {
+                // DIFF chunk
+                fputc(0x02, out); // code for DIFF
+                fputc((signed char)dr, out);
+                fputc((signed char)dg, out);
+                fputc((signed char)db, out);
             } else {
                 // RAW chunk
-                fputc(0x01, out);      // code for RAW
-                fputc(prev.r, out);
-                fputc(prev.g, out);
-                fputc(prev.b, out);
+                fputc(0x01, out); // code for RAW
+                fputc(curr.r, out);
+                fputc(curr.g, out);
+                fputc(curr.b, out);
             }
-            prev = pixels[i];
-            run = 1;
         }
+
+        prev = curr;
     }
 
-    // flush last pixel
+    // Flush the last pixel
     if (run > 1) {
         fputc(0x00, out);
         fputc(run, out);
