@@ -16,13 +16,15 @@ function HomePage() {
         <div className="content-left">
           <h2 className="main-title">Compress your Image</h2>
           
-          <button className="compress-btn">
-            Compress Here
-          </button>
+          <div className="button-group">
+            <button className="compress-btn">
+              Compress Here
+            </button>
 
-          <button className="how-it-works-btn">
-            How this works
-          </button>
+            <button className="how-it-works-btn">
+              How this works
+            </button>
+          </div>
         </div>
 
         <div className="content-right">

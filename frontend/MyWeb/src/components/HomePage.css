@@ -1,12 +1,14 @@
 .home-container {
   min-height: 100vh;
-  background: rgb(58, 130, 53);  
+  height: 100vh;
+  background: rgba(2, 133, 39);
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  overflow: hidden;
 }
 
 .header {
-  padding: 2rem 3rem;
+  padding: 2rem 1.5rem;
 }
 
 .logo-section {
@@ -32,10 +34,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4rem 6rem;
+  padding: 0 6rem;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: -2rem auto 0;
   gap: 4rem;
+  height: calc(100vh - 100px);
 }
 
 .content-left {
@@ -44,19 +47,29 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 2rem;
+  margin-top: -3rem;
 }
 
 .main-title {
-  font-size: 5rem;
+  font-size: 4.5rem;
   font-weight: 400;
   line-height: 1.2;
   margin: 0;
   letter-spacing: -1px;
+  text-align: left;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
 }
 
 .compress-btn {
   background-color: rgba(255, 255, 255, 0.95);
-  color: #2d7d4e;
+  color: rgba(2, 133, 39);
   border: none;
   padding: 1rem 3rem;
   border-radius: 50px;
@@ -97,47 +110,79 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  padding-right: 2rem;
+  height: 100%;  /* Take full height of parent */
+  position: relative;
 }
 
 .main-logo {
-  max-width: 450px;
+  max-width: 400px;
   width: 100%;
   height: auto;
   object-fit: contain;
+  position: absolute;  /* Position absolutely for perfect centering */
+  top: 45%;  /* Move to 50% from top */
+  transform: translateY(-50%);  /* Shift back by half its height */
+  right: -5rem;  /* Keep it on the right */
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .main-content {
-    padding: 3rem 3rem;
+    padding: 0 3rem;
     gap: 3rem;
-  }
-
-  .main-title {
-    font-size: 4rem;
-  }
-
-  .main-logo {
-    max-width: 350px;
-  }
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-    padding: 2rem;
-    text-align: center;
+    margin-top: -1rem;
   }
 
   .content-left {
-    align-items: center;
+    margin-top: -2rem;
   }
 
   .main-title {
-    font-size: 3rem;
+    font-size: 3.5rem;
   }
 
   .main-logo {
     max-width: 300px;
+    right: 1rem;
+  }
+
+  .content-right {
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 1.5rem 1rem;
+  }
+
+  .main-content {
+    flex-direction: column;
+    padding: 0 2rem;
+    text-align: center;
+    height: calc(100vh - 100px);
+    margin-top: 0;
+  }
+
+  .content-left {
+    align-items: center;
+    margin-top: 0;
+  }
+
+  .main-title {
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
+  .main-logo {
+    position: static;
+    transform: none;
+    max-width: 250px;
+    right: auto;
+  }
+
+  .content-right {
+    padding-right: 0;
   }
 }
