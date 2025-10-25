@@ -78,3 +78,8 @@ compile_commands.json
 # Linux / other system files
 *~
 
+# Testing images
+*.bmp
+*.pp
+*.huff
+*.png
