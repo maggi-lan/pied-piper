@@ -87,10 +87,17 @@ unsigned char* rle_decode(const unsigned char* data, size_t len, size_t out_len)
     return out;
 }
 
-int main() {
-    const char* inpath = "static/venice.bmp";
-    const char* outcompressed = "static/compressed.pp";
-    const char* outdecoded = "static/decoded.bmp";
+int main(int argc, char* argv[]) {
+    // Check for correct number of arguments
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <input.bmp> <compressed.pp> <decoded.bmp>\n", argv[0]);
+        fprintf(stderr, "Example: %s static/venice.bmp static/compressed.pp static/decoded.bmp\n", argv[0]);
+        return 1;
+    }
+
+    const char* inpath = argv[1];
+    const char* outcompressed = argv[2];
+    const char* outdecoded = argv[3];
 
     // ============ COMPRESSION ============
     int width, height, channels;
