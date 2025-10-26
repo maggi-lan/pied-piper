@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <math.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
@@ -10,17 +9,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "libs/stb_image_write.h"
 
-#include "libs/arith.h"  // Minimal adaptive arithmetic coder interface
-
-typedef struct {
-    unsigned char r, g, b;
-} Pixel;
-
-static inline unsigned char clamp_u8(int v) {
-    if (v < 0) return 0;
-    if (v > 255) return 255;
-    return (unsigned char)v;
-}
+#include "libs/arith.h"
 
 int loco_predict(int a, int b, int c) {
     int p = a + b - c;
@@ -39,28 +28,28 @@ void compute_residuals(const uint8_t* src, int width, int height, uint8_t* resid
 
             int pred = loco_predict(a, b, c);
             int res = (int)src[idx] - pred;
-            residuals[idx] = (uint8_t)(res & 0xFF);
+            residuals[idx] = (uint8_t)res;
         }
     }
 }
 
 void inverse_predict_loco_i(const uint8_t* resid, uint8_t* out, int wid, int ht) {
-    for (int y = 0; y < ht; y++) {
-        for (int x = 0; x < wid; x++) {
+    for (int y=0; y < ht; y++) {
+        for (int x=0; x < wid; x++) {
             int idx = y * wid + x;
             int a = x > 0 ? out[y * wid + (x - 1)] : 0;
             int b = y > 0 ? out[(y - 1) * wid + x] : 0;
             int c = (x > 0 && y > 0) ? out[(y - 1) * wid + (x - 1)] : 0;
             int pred = loco_predict(a, b, c);
-            int val = (int)resid[idx] + pred;
-            out[idx] = clamp_u8(val);
+
+            int val = (pred + resid[idx]) & 0xFF;
+            out[idx] = (uint8_t)val;
         }
     }
 }
 
-// RLE encode: [count][value]
 unsigned char* rle_encode(const unsigned char* data, size_t len, size_t* out_len) {
-    size_t capacity = len * 2;
+    size_t capacity = len * 2 + 1024;
     unsigned char* out = malloc(capacity);
     size_t pos = 0, i = 0;
     while (i < len) {
@@ -78,9 +67,10 @@ unsigned char* rle_encode(const unsigned char* data, size_t len, size_t* out_len
     return out;
 }
 
-// RLE decode function
 unsigned char* rle_decode(const unsigned char* data, size_t len, size_t out_len) {
     unsigned char* out = malloc(out_len);
+    if (!out) return NULL;
+
     size_t pos = 0, i = 0;
     while (i + 1 < len && pos < out_len) {
         unsigned char run = data[i++];
@@ -89,16 +79,20 @@ unsigned char* rle_decode(const unsigned char* data, size_t len, size_t out_len)
             out[pos++] = val;
         }
     }
+
+    while (pos < out_len) {
+        out[pos++] = 0;
+    }
+
     return out;
 }
 
 int main() {
-    // File paths
     const char* inpath = "static/snail.bmp";
     const char* outcompressed = "static/compressed.pp";
     const char* outdecoded = "static/decoded.bmp";
 
-    // Load input image
+    // ============ COMPRESSION ============
     int width, height, channels;
     unsigned char* img = stbi_load(inpath, &width, &height, &channels, 3);
     if (!img) {
@@ -106,9 +100,11 @@ int main() {
         return 1;
     }
 
+    printf("Compressing %dx%d image...\n", width, height);
     size_t px_count = (size_t)width * height;
+    size_t total_len = px_count * 3;
 
-    // Separate into R G B channels
+    // Separate channels
     uint8_t* r_chan = malloc(px_count);
     uint8_t* g_chan = malloc(px_count);
     uint8_t* b_chan = malloc(px_count);
@@ -119,7 +115,7 @@ int main() {
     }
     free(img);
 
-    // Compute prediction residuals using LOCO-I
+    // Compute residuals
     uint8_t* res_r = malloc(px_count);
     uint8_t* res_g = malloc(px_count);
     uint8_t* res_b = malloc(px_count);
@@ -130,8 +126,7 @@ int main() {
     free(g_chan);
     free(b_chan);
 
-    // Concatenate residuals
-    size_t total_len = px_count * 3;
+    // Concatenate
     unsigned char* combined = malloc(total_len);
     memcpy(combined, res_r, px_count);
     memcpy(combined + px_count, res_g, px_count);
@@ -140,56 +135,69 @@ int main() {
     free(res_g);
     free(res_b);
 
-    // Apply RLE encoding
+    // RLE encode
     size_t rle_len;
     unsigned char* rle_data = rle_encode(combined, total_len, &rle_len);
     free(combined);
 
-    // Adaptive Arithmetic encode the RLE data
-    size_t arith_capacity = rle_len * 2;
+    // Arithmetic encode
+    size_t arith_capacity = rle_len + 4096;
     unsigned char* arith_out = malloc(arith_capacity);
     size_t arith_len = arithmetic_encode(rle_data, rle_len, arith_out, arith_capacity);
     free(rle_data);
 
-    // Write compressed output
+    // Write file
     FILE* fout = fopen(outcompressed, "wb");
+    if (!fout) {
+        fprintf(stderr, "Cannot write output file\n");
+        return 1;
+    }
     fwrite(&width, sizeof(int), 1, fout);
     fwrite(&height, sizeof(int), 1, fout);
     int nchannels = 3;
     fwrite(&nchannels, sizeof(int), 1, fout);
+    fwrite(&total_len, sizeof(size_t), 1, fout);
+    fwrite(&rle_len, sizeof(size_t), 1, fout);
     fwrite(&arith_len, sizeof(size_t), 1, fout);
     fwrite(arith_out, 1, arith_len, fout);
     fclose(fout);
     free(arith_out);
 
-    printf("Compression complete: %zu bytes compressed, output file: %s\n", arith_len, outcompressed);
+    printf("Compressed: %zu -> %zu bytes (%.1f%%)\n",
+           total_len, arith_len, 100.0 * arith_len / total_len);
 
-    // ----------- Decompression -------------
-
+    // ============ DECOMPRESSION ============
     FILE* fin = fopen(outcompressed, "rb");
+    if (!fin) {
+        fprintf(stderr, "Cannot read compressed file\n");
+        return 1;
+    }
+
     int d_w, d_h, d_ch;
-    size_t d_size;
+    size_t d_total, d_rle, d_arith;
     fread(&d_w, sizeof(int), 1, fin);
     fread(&d_h, sizeof(int), 1, fin);
     fread(&d_ch, sizeof(int), 1, fin);
-    fread(&d_size, sizeof(size_t), 1, fin);
+    fread(&d_total, sizeof(size_t), 1, fin);
+    fread(&d_rle, sizeof(size_t), 1, fin);
+    fread(&d_arith, sizeof(size_t), 1, fin);
 
-    unsigned char* enc_data = malloc(d_size);
-    fread(enc_data, 1, d_size, fin);
+    unsigned char* enc_data = malloc(d_arith);
+    fread(enc_data, 1, d_arith, fin);
     fclose(fin);
 
-    // Decode arithmetic coded data to RLE stream
-    size_t rle_bufcap = d_w * d_h * d_ch * 2;
-    unsigned char* rle_decoded = malloc(rle_bufcap);
-    size_t rle_dec_len = arithmetic_decode(enc_data, d_size, rle_decoded, rle_bufcap);
+    printf("Decompressing...\n");
+
+    // Arithmetic decode
+    unsigned char* rle_decoded = malloc(d_rle);
+    arithmetic_decode(enc_data, d_arith, rle_decoded, d_rle);
     free(enc_data);
 
-    // Decode RLE stream to residuals
-    size_t dec_total = d_w * d_h * d_ch;
-    unsigned char* decoded_residuals = rle_decode(rle_decoded, rle_dec_len, dec_total);
+    // RLE decode
+    unsigned char* decoded_residuals = rle_decode(rle_decoded, d_rle, d_total);
     free(rle_decoded);
 
-    // Separate residual channels
+    // Separate channels
     size_t px_dec = d_w * d_h;
     uint8_t* res_r_dec = malloc(px_dec);
     uint8_t* res_g_dec = malloc(px_dec);
@@ -199,29 +207,32 @@ int main() {
     memcpy(res_b_dec, decoded_residuals + 2 * px_dec, px_dec);
     free(decoded_residuals);
 
-    // Inverse LOCO-I prediction
-    uint8_t* img_r = malloc(px_dec);
-    uint8_t* img_g = malloc(px_dec);
-    uint8_t* img_b = malloc(px_dec);
+    // Inverse prediction
+    uint8_t* img_r = calloc(px_dec, 1);
+    uint8_t* img_g = calloc(px_dec, 1);
+    uint8_t* img_b = calloc(px_dec, 1);
+
     inverse_predict_loco_i(res_r_dec, img_r, d_w, d_h);
     inverse_predict_loco_i(res_g_dec, img_g, d_w, d_h);
     inverse_predict_loco_i(res_b_dec, img_b, d_w, d_h);
+    free(res_r_dec);
+    free(res_g_dec);
+    free(res_b_dec);
 
-    free(res_r_dec); free(res_g_dec); free(res_b_dec);
-
-    // Interleave and write decoded image
+    // Interleave and write
     unsigned char* decoded_img = malloc(px_dec * 3);
     for (size_t i = 0; i < px_dec; i++) {
         decoded_img[3 * i] = img_r[i];
         decoded_img[3 * i + 1] = img_g[i];
         decoded_img[3 * i + 2] = img_b[i];
     }
-    stbi_write_bmp(outdecoded, d_w, d_h, 3, decoded_img);
 
-    free(img_r); free(img_g); free(img_b);
+    stbi_write_bmp(outdecoded, d_w, d_h, 3, decoded_img);
+    free(img_r);
+    free(img_g);
+    free(img_b);
     free(decoded_img);
 
-    printf("Decompression complete. Output saved to %s\n", outdecoded);
-
+    printf("Done! Saved to %s\n", outdecoded);
     return 0;
 }
