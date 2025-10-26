@@ -88,7 +88,7 @@ unsigned char* rle_decode(const unsigned char* data, size_t len, size_t out_len)
 }
 
 int main() {
-    const char* inpath = "static/snail.bmp";
+    const char* inpath = "static/venice.bmp";
     const char* outcompressed = "static/compressed.pp";
     const char* outdecoded = "static/decoded.bmp";
 
