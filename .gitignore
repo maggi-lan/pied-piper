@@ -24,6 +24,8 @@
 *.i*86
 *.x86_64
 *.hex
+algo
+benchmark
 
 # Debug files
 *.dSYM/
